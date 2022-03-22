@@ -11,7 +11,7 @@ class TestIntersectionOverUnion(unittest.TestCase):
 
         # test cases we want to run
         self.t1_box1 = torch.tensor([0.8, 0.1, 0.2, 0.2])
-        self.t1_box2 = torch.tensor([0.9, 0.2, 0.2, 0.2])
+        self.t1_box2 = torch.tensor([0.9,  0.2, 0.2, 0.2])
         self.t1_correct_iou = 1 / 7
 
         self.t2_box1 = torch.tensor([0.95, 0.6, 0.5, 0.2])
