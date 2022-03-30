@@ -24,7 +24,6 @@ def mean_average_precision(
         float: mAP value across all classes given a specific IoU threshold
     """
 
-    #pred_boxes (list) : [[train_idx, class_pred, prob_score, x1, y1, x2, y2], ...]
     average_precisions = []
     epsilon = 1e-6
 
@@ -32,11 +31,11 @@ def mean_average_precision(
         detections = []
         ground_truths = []
 
-        for detection in pred_boxes:
-            if detection[1] == c: # class_pred
+        for detection in pred_boxes:  # [train_idx, class_prediction, prob_score, x1, y1, x2, y2]
+            if detection[1] == c:  # class_prediction == c(class)
                 detections.append(detection)
 
-        for true_box in true_boxes:
+        for true_box in true_boxes:  # same
             if true_box[1] == c:
                 ground_truths.append(true_box)
 
@@ -46,14 +45,16 @@ def mean_average_precision(
         amount_bboxes = Counter([gt[0] for gt in ground_truths])
 
 
-        # amounnt_bboxes = {0: torch.tenser([0,0,0], 1: torch.tensor([0,0,0,0,0])}
         for key, val in amount_bboxes.items():
-            amount_bboxes[key] = torch.zeros(val)
+            amount_bboxes[key] = torch.zeros(val) # amounnt_bboxes = {0: torch.tenser([0,0,0], 1: torch.tensor([0,0,0,0,0])}
 
+
+
+        #class c에 해당하는 이미지별 bbox수만큼 tensor을 생성한다.
         detections.sort(key=lambda x: x[2], reverse=True) # sort: prob_score
-        TP = torch.zeros(len(detections))
-        FP = torch.zeros((len(detections)))
-        total_true_bboxes = len(ground_truths)
+        TP = torch.zeros(len(detections)) #
+        FP = torch.zeros((len(detections))) #
+        total_true_bboxes = len(ground_truths) #
 
         for detection_idx, detection in enumerate(detections):
             ground_truths_img = [
@@ -95,6 +96,7 @@ def mean_average_precision(
         average_precisions.append(torch.trapz(precisions, recalls)) # y,x
 
     return sum(average_precisions) / len(average_precisions)
+
 
 
 
