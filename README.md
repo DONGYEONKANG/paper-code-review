@@ -1,8 +1,9 @@
 ## paper-code-review
 
 
-__📌 ONLY FOR STUDYING__  
-__📌 ONLY PYTORCH __  
+📌 **ONLY FOR STUDYING** 
+📌 **ONLY PYTORCH**  
+
 👩‍💻 NOTION PAGE: [NOTION PAGE](https://imfromk.notion.site/CV-CODE-a07927e461d84faa8a79cad21cd8e94c)  
 
 ---
