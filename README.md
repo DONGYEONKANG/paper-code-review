@@ -25,3 +25,14 @@ paper line: https://arxiv.org/abs/1612.03144
 paper review: https://velog.io/@imfromk/CV-Feature-Pyramid-Networks-for-Object-DetectionFPN-review  
 Reference: https://github.com/potterhsu/easy-fpn.pytorch  
 
+---
+### YOLOv2  
+paper line: https://arxiv.org/abs/1612.08242
+paper review: https://velog.io/@imfromk/CV-YOLO9000-Better-Faster-Stronger 
+Reference: https://github.com/uvipen/Yolo-v2-pytorch
+
+---
+### YOLOv3
+paper line: https://arxiv.org/abs/1804.02767
+paper review: https://velog.io/@imfromk/CV-YOLOv3-An-Incremental-Improvement-review
+Reference: https://www.youtube.com/watch?v=Grir6TZbc1M&list=PLhhyoLH6Ijfw0TpCTVTNk42NN08H6UvNq&index=6&ab_channel=AladdinPersson
