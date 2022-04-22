@@ -40,38 +40,49 @@ class YOLODataset(Dataset):
         self.anchors = torch.tensor(anchors[0] + anchors[1] + anchors[2])  # for all 3 scales
         self.num_anchors = self.anchors.shape[0]
         self.num_anchors_per_scale = self.num_anchors // 3
-        self.C = C
-        self.ignore_iou_thresh = 0.5
+        self.C = C # class number
+        self.ignore_iou_thresh = 0.5 #
 
     def __len__(self):
         return len(self.annotations)
 
     def __getitem__(self, index):
         label_path = os.path.join(self.label_dir, self.annotations.iloc[index, 1])
-        bboxes = np.roll(np.loadtxt(fname=label_path, delimiter=" ", ndmin=2), 4, axis=1).tolist()
+        bboxes = np.roll(np.loadtxt(fname=label_path, delimiter=" ", ndmin=2), 4, axis=1).tolist() # x,y,w,h, c
+
         img_path = os.path.join(self.img_dir, self.annotations.iloc[index, 0])
-        image = np.array(Image.open(img_path).convert("RGB"))
+        image = np.array(Image.open(img_path).convert("RGB")) # 이미지 어레이 값
+
 
         if self.transform:
             augmentations = self.transform(image=image, bboxes=bboxes)
             image = augmentations["image"]
             bboxes = augmentations["bboxes"]
 
-        # Below assumes 3 scale predictions (as paper) and same num of anchors per scale
-        targets = [torch.zeros((self.num_anchors // 3, S, S, 6)) for S in self.S]
+
+
+        # Below assumes 3 scale predictions (as paper) and same num of anchors per scale (3 x S x S x 6)
+        targets = [torch.zeros((self.num_anchors // 3, S, S, 6)) for S in self.S] # [p_o, x, y, w, h, c] in target p_o 0 or 1
+
         for box in bboxes: # 한 이미지에 있는 GT Box, loss function(), cell 0 ~ 1 + anchors box 당 하나만
-            iou_anchors = iou(torch.tensor(box[2:4]), self.anchors)
-            anchor_indices = iou_anchors.argsort(descending=True, dim=0)
+            iou_anchors = iou(torch.tensor(box[2:4]), self.anchors) # 9개의 iou score
+            anchor_indices = iou_anchors.argsort(descending=True, dim=0) # 9개의 iou scores 내림차순한 인덱스
             x, y, width, height, class_label = box
             has_anchor = [False] * 3  # each scale should have one anchor
-            for anchor_idx in anchor_indices:
+
+
+
+            for anchor_idx in anchor_indices: # 9개의 iou scores 내림차순한 인덱스
                 scale_idx = anchor_idx // self.num_anchors_per_scale # 0, 1, 2
                 anchor_on_scale = anchor_idx % self.num_anchors_per_scale  # 0, 1, 2
+
                 S = self.S[scale_idx]
                 i, j = int(S * y), int(S * x)  # which cell
+
                 anchor_taken = targets[scale_idx][anchor_on_scale, i, j, 0]
+
                 if not anchor_taken and not has_anchor[scale_idx]:
-                    targets[scale_idx][anchor_on_scale, i, j, 0] = 1
+                    targets[scale_idx][anchor_on_scale, i, j, 0] = 1 # 객체의 확률에 1을 넣는다.
                     x_cell, y_cell = S * x - j, S * y - i  # both between [0,1]
                     width_cell, height_cell = (
                         width * S,
@@ -80,17 +91,25 @@ class YOLODataset(Dataset):
                     box_coordinates = torch.tensor(
                         [x_cell, y_cell, width_cell, height_cell]
                     )
-                    targets[scale_idx][anchor_on_scale, i, j, 1:5] = box_coordinates
-                    targets[scale_idx][anchor_on_scale, i, j, 5] = int(class_label)
-                    has_anchor[scale_idx] = True
+                    targets[scale_idx][anchor_on_scale, i, j, 1:5] = box_coordinates # 좌표
+                    targets[scale_idx][anchor_on_scale, i, j, 5] = int(class_label) # 정답 클래스
+                    has_anchor[scale_idx] = True # 할당 ok
 
                 elif not anchor_taken and iou_anchors[anchor_idx] > self.ignore_iou_thresh:
                     targets[scale_idx][anchor_on_scale, i, j, 0] = -1  # ignore prediction
 
+
         return image, tuple(targets) # y
 
 
-def test():
+"""
+ANCHORS = [
+    [(0.28, 0.22), (0.38, 0.48), (0.9, 0.78)],
+    [(0.07, 0.15), (0.15, 0.11), (0.14, 0.29)],
+    [(0.02, 0.03), (0.04, 0.07), (0.08, 0.06)],
+] 
+"""
+def tes_test():
     anchors = config.ANCHORS
 
     transform = config.test_transforms
@@ -109,12 +128,13 @@ def test():
     )
     loader = DataLoader(dataset=dataset, batch_size=1, shuffle=True)
     for x, y in loader:
+
         boxes = []
 
         for i in range(y[0].shape[1]):
             anchor = scaled_anchors[i]
             print(anchor.shape)
-            print(y[i].shape)
+            # print(y[i].shape)
             boxes += cells_to_bboxes(
                 y[i], is_preds=False, S=y[i].shape[2], anchors=anchor
             )[0]
@@ -124,4 +144,4 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    tes_test()
